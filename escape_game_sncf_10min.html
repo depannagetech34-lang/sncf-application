@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escape Game SNCF - Perturbation après incident</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: #f9fafb;
+    }
+    header {
+      background: #7c003f;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 18px rgba(0,0,0,.35);
+    }
+    header h1 { margin: 0; font-size: 22px; }
+    #timer {
+      font-size: 20px;
+      font-weight: bold;
+      background: #111827;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #f9fafb33;
+    }
+    main { max-width: 1050px; margin: 28px auto; padding: 0 18px; }
+    .card {
+      background: #ffffff;
+      color: #111827;
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.28);
+    }
+    .badge {
+      display: inline-block;
+      background: #f2c300;
+      color: #111827;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    h2 { margin-top: 4px; color: #7c003f; }
+    p { line-height: 1.55; }
+    .documents {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+      margin: 18px 0;
+    }
+    .doc {
+      background: #f3f4f6;
+      border-left: 5px solid #7c003f;
+      padding: 14px;
+      border-radius: 10px;
+      min-height: 125px;
+    }
+    .doc strong { color: #7c003f; }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #9ca3af;
+      margin: 8px 0 12px;
+      font-size: 16px;
+    }
+    button {
+      background: #7c003f;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      margin: 5px 5px 5px 0;
+    }
+    button:hover { background: #5f0030; }
+    .hint-btn { background: #374151; }
+    .hint-btn:hover { background: #111827; }
+    .hint {
+      display: none;
+      background: #fff7d6;
+      border-left: 5px solid #f2c300;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      color: #111827;
+    }
+    .result {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .ok { color: #047857; }
+    .bad { color: #b91c1c; }
+    .hidden { display: none; }
+    .progress {
+      background: #e5e7eb;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: #7c003f;
+      transition: width .3s ease;
+    }
+    .choices label {
+      display: block;
+      background: #f3f4f6;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    footer { text-align: center; color: #d1d5db; padding: 25px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Escape Game SNCF — Perturbation après incident</h1>
+    <div id="timer">10:00</div>
+  </header>
+
+  <main>
+    <div class="card" id="intro">
+      <span class="badge">Mission</span>
+      <h2>Cellule de crise exploitation</h2>
+      <p>Un incident vient de se produire sur une ligne SNCF. Le trafic est fortement perturbé. Tu fais partie de l’équipe d’analyse. Ta mission est d’identifier la cause probable de l’accident, les conséquences sur l’exploitation et les mesures correctives à mettre en place.</p>
+      <p><strong>Objectif :</strong> résoudre les 4 étapes avant la fin du chronomètre.</p>
+      <button onclick="startGame()">Démarrer la mission</button>
+    </div>
+
+    <div class="card hidden" id="game">
+      <div class="progress"><div class="bar" id="bar"></div></div>
+
+      <section id="step1">
+        <span class="badge">Étape 1 / 4</span>
+        <h2>Comprendre l’alerte</h2>
+        <p>Le régulateur reçoit l’alerte suivante :</p>
+        <div class="documents">
+          <div class="doc"><strong>Message poste :</strong><br>À 07h42, arrêt d’urgence d’un TER après franchissement anormal d’une zone de chantier.</div>
+          <div class="doc"><strong>Conducteur :</strong><br>Signal fermé aperçu tardivement. Freinage d’urgence déclenché. Aucun blessé.</div>
+          <div class="doc"><strong>Agent terrain :</strong><br>Une annonce chantier aurait été mal confirmée pendant la relève.</div>
+        </div>
+        <label>Quel est le premier risque à traiter ?</label>
+        <select id="q1">
+          <option value="">Choisir une réponse</option>
+          <option value="voyageurs">Faire repartir les voyageurs rapidement</option>
+          <option value="securite">Sécuriser immédiatement la zone et arrêter les circulations concernées</option>
+          <option value="media">Prévenir les médias</option>
+        </select>
+        <button onclick="checkStep1()">Valider</button>
+        <button class="hint-btn" onclick="showHint('h1')">Aide</button>
+        <div class="hint" id="h1">Indice : après un incident ferroviaire, la priorité est toujours d’éviter le sur-accident.</div>
+        <div class="result" id="r1"></div>
+      </section>
+
+      <section id="step2" class="hidden">
+        <span class="badge">Étape 2 / 4</span>
+        <h2>Analyser les indices</h2>
+        <div class="documents">
+          <div class="doc"><strong>Indice A :</strong><br>La météo est normale. Pas de pluie, pas de brouillard.</div>
+          <div class="doc"><strong>Indice B :</strong><br>Les installations de signalisation fonctionnent lors du contrôle après incident.</div>
+          <div class="doc"><strong>Indice C :</strong><br>Le cahier de relève mentionne une information chantier incomplète.</div>
+          <div class="doc"><strong>Indice D :</strong><br>Le conducteur indique une confusion sur la limitation temporaire et la zone protégée.</div>
+        </div>
+        <label>Code à trouver : prends la première lettre des deux indices les plus importants.</label>
+        <input id="q2" placeholder="Exemple : AB" />
+        <button onclick="checkStep2()">Valider</button>
+        <button class="hint-btn" onclick="showHint('h2')">Aide 1</button>
+        <button class="hint-btn" onclick="showHint('h2b')">Aide 2</button>
+        <div class="hint" id="h2">Indice : élimine les causes météo et signalisation.</div>
+        <div class="hint" id="h2b">Indice : les deux indices importants parlent de relève et de confusion sur la zone.</div>
+        <div class="result" id="r2"></div>
+      </section>
+
+      <section id="step3" class="hidden">
+        <span class="badge">Étape 3 / 4</span>
+        <h2>Identifier la cause probable</h2>
+        <p>À partir des indices, choisis la cause la plus probable.</p>
+        <div class="choices">
+          <label><input type="radio" name="cause" value="meteo"> Mauvaises conditions météo</label>
+          <label><input type="radio" name="cause" value="signalisation"> Défaillance de la signalisation</label>
+          <label><input type="radio" name="cause" value="communication"> Défaut de communication lors de la relève chantier / exploitation</label>
+          <label><input type="radio" name="cause" value="obstacle"> Obstacle volontaire sur la voie</label>
+        </div>
+        <button onclick="checkStep3()">Valider</button>
+        <button class="hint-btn" onclick="showHint('h3')">Aide</button>
+        <div class="hint" id="h3">Indice : la cause n’est pas technique. Elle vient surtout de la transmission d’information.</div>
+        <div class="result" id="r3"></div>
+      </section>
+
+      <section id="step4" class="hidden">
+        <span class="badge">Étape 4 / 4</span>
+        <h2>Mesures correctives</h2>
+        <p>Sélectionne les 4 bonnes actions à mettre en place après l’incident.</p>
+        <div class="choices">
+          <label><input type="checkbox" class="m" value="zone"> Maintenir la protection de la zone jusqu’à vérification complète</label>
+          <label><input type="checkbox" class="m" value="retour"> Organiser un retour d’expérience avec les équipes concernées</label>
+          <label><input type="checkbox" class="m" value="supprimer"> Supprimer toutes les procédures pour aller plus vite</label>
+          <label><input type="checkbox" class="m" value="info"> Informer les voyageurs et adapter le plan de transport</label>
+          <label><input type="checkbox" class="m" value="procedure"> Renforcer la procédure de relève et de confirmation des annonces chantier</label>
+          <label><input type="checkbox" class="m" value="ignorer"> Reprendre immédiatement sans contrôle</label>
+        </div>
+        <button onclick="checkStep4()">Valider</button>
+        <button class="hint-btn" onclick="showHint('h4')">Aide</button>
+        <div class="hint" id="h4">Indice : garde les actions liées à la sécurité, à l’exploitation, à l’information et au retour d’expérience.</div>
+        <div class="result" id="r4"></div>
+      </section>
+    </div>
+
+    <div class="card hidden" id="end">
+      <span class="badge">Mission terminée</span>
+      <h2>Rapport final</h2>
+      <p><strong>Cause probable :</strong> défaut de communication entre chantier, relève et exploitation, entraînant une mauvaise compréhension de la zone protégée.</p>
+      <p><strong>Conséquences :</strong> arrêt d’urgence, interruption ou ralentissement des circulations, retards voyageurs, mobilisation des équipes terrain, risque de sur-accident évité.</p>
+      <p><strong>Mesures correctives :</strong> sécurisation de la zone, vérification technique, information voyageurs, retour d’expérience, amélioration des transmissions lors des relèves et confirmation claire des annonces chantier.</p>
+      <button onclick="location.reload()">Rejouer</button>
+    </div>
+  </main>
+
+  <footer>Support pédagogique fictif inspiré du contexte ferroviaire SNCF — à adapter avec vos consignes de cours.</footer>
+
+  <script>
+    let time = 10 * 60;
+    let timerInterval;
+    let step = 0;
+
+    function startGame() {
+      document.getElementById('intro').classList.add('hidden');
+      document.getElementById('game').classList.remove('hidden');
+      step = 1;
+      updateBar();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      time--;
+      const min = Math.floor(time / 60).toString().padStart(2, '0');
+      const sec = (time % 60).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `${min}:${sec}`;
+      if (time <= 0) {
+        clearInterval(timerInterval);
+        alert('Temps écoulé ! La mission est échouée.');
+        location.reload();
+      }
+    }
+
+    function showHint(id) {
+      document.getElementById(id).style.display = 'block';
+    }
+
+    function updateBar() {
+      document.getElementById('bar').style.width = ((step - 1) / 4 * 100) + '%';
+    }
+
+    function next(current, nextId) {
+      document.getElementById(current).classList.add('hidden');
+      document.getElementById(nextId).classList.remove('hidden');
+      step++;
+      updateBar();
+    }
+
+    function checkStep1() {
+      const answer = document.getElementById('q1').value;
+      const r = document.getElementById('r1');
+      if (answer === 'securite') {
+        r.innerHTML = '<span class="ok">Correct. La priorité est la sécurité.</span>';
+        setTimeout(() => next('step1', 'step2'), 700);
+      } else {
+        r.innerHTML = '<span class="bad">Incorrect. Réfléchis à la priorité absolue après un incident ferroviaire.</span>';
+      }
+    }
+
+    function checkStep2() {
+      const answer = document.getElementById('q2').value.trim().toUpperCase().replace(/\s/g, '');
+      const r = document.getElementById('r2');
+      if (answer === 'CD' || answer === 'DC') {
+        r.innerHTML = '<span class="ok">Correct. Les indices C et D orientent vers un problème de transmission d’information.</span>';
+        setTimeout(() => next('step2', 'step3'), 700);
+      } else {
+        r.innerHTML = '<span class="bad">Incorrect. Regarde quels indices expliquent vraiment l’incident.</span>';
+      }
+    }
+
+    function checkStep3() {
+      const selected = document.querySelector('input[name="cause"]:checked');
+      const r = document.getElementById('r3');
+      if (selected && selected.value === 'communication') {
+        r.innerHTML = '<span class="ok">Correct. La cause probable est un défaut de communication.</span>';
+        setTimeout(() => next('step3', 'step4'), 700);
+      } else {
+        r.innerHTML = '<span class="bad">Incorrect. Les installations fonctionnent et la météo est normale.</span>';
+      }
+    }
+
+    function checkStep4() {
+      const checked = Array.from(document.querySelectorAll('.m:checked')).map(x => x.value).sort();
+      const good = ['info', 'procedure', 'retour', 'zone'].sort();
+      const r = document.getElementById('r4');
+      if (JSON.stringify(checked) === JSON.stringify(good)) {
+        r.innerHTML = '<span class="ok">Correct. Les mesures sont cohérentes avec la sécurité ferroviaire.</span>';
+        document.getElementById('bar').style.width = '100%';
+        clearInterval(timerInterval);
+        setTimeout(() => {
+          document.getElementById('game').classList.add('hidden');
+          document.getElementById('end').classList.remove('hidden');
+        }, 800);
+      } else {
+        r.innerHTML = '<span class="bad">Incorrect. Il faut choisir exactement 4 mesures pertinentes.</span>';
+      }
+    }
+  </script>
+</body>
+</html>
